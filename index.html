@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verry Fun Horror Game</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #1e1e1e;
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      image-rendering: pixelated;
+      width: min(100vw, calc(100vh * 4 / 3));
+      height: min(100vh, calc(100vw * 3 / 4));
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="game" width="640" height="480"></canvas>
+
+  <!-- Load order matters: files that make variables go first, game.js last -->
+  <script src="game.js"></script>
+
+</body>
+
+</html>
