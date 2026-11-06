@@ -37,13 +37,34 @@ function draw() {
     ctx.moveTo(playerX, playerY);
     ctx.lineTo(playerX + Math.cos(playerAngle) * 20, playerY + Math.sin(playerAngle) * 20);
     ctx.stroke();
+    for (let i = 0; i < 20; i = i + 1) {
+        let rayX = playerX;
+        let rayY = playerY;
+        cell = 0;
+        let steps = 0;
+        let rayAngle = playerAngle - 0.4 + i * 0.05;
+        while (cell === 0 && steps < 1000) {
+            rayX = rayX + Math.cos(rayAngle);
+            rayY = rayY + Math.sin(rayAngle);
+            col = Math.floor(rayX / 50);
+            row = Math.floor(rayY / 50);
+            cell = map[row][col];
+            steps = steps + 1; 
+        }
+        //raycasting
+        ctx.strokeStyle = "lime";
+        ctx.beginPath();
+        ctx.moveTo(playerX, playerY);
+        ctx.lineTo(rayX, rayY);
+        ctx.stroke();
+    }
 }
 function update() {
     if (keys["ArrowLeft"] || keys["a"]) {playerAngle -= 0.05; }
     if (keys["ArrowRight"] || keys["d"]) {playerAngle += 0.05; }
     if (keys["ArrowUp"] || keys["w"]) {
-        let newX = playerX + Math.cos(playerAngle) * 2.5;
-        let newY = playerY + Math.sin(playerAngle) * 2.5;
+        let newX = playerX + Math.cos(playerAngle) * 2;
+        let newY = playerY + Math.sin(playerAngle) * 2;
         let colX = Math.floor(newX / 50);
         let rowX = Math.floor(playerY / 50);
         let cellX = map[rowX][colX];
@@ -58,8 +79,8 @@ function update() {
         }
     }
     if (keys["ArrowDown"] || keys["s"]) {
-        let newXBackwards = playerX - Math.cos(playerAngle) * 2.5;
-        let newYBackwards = playerY - Math.sin(playerAngle) * 2.5;
+        let newXBackwards = playerX - Math.cos(playerAngle) * 2;
+        let newYBackwards = playerY - Math.sin(playerAngle) * 2;
         let colX = Math.floor(newXBackwards / 50);
         let rowX = Math.floor(playerY / 50);
         let cellX = map[rowX][colX];
