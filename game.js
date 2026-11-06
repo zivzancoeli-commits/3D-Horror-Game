@@ -7,9 +7,9 @@ addEventListener("keyup", function (e) { keys[e.key] = false; });
 
 let map = [
     [1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1]
@@ -17,6 +17,7 @@ let map = [
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let y = 0; y < map.length; y++) {
         for (let x = 0; x < map[y].length; x++) {
             if (map[y][x] === 1) {
@@ -38,17 +39,42 @@ function draw() {
     ctx.stroke();
 }
 function update() {
-    if (keys["ArrowLeft"]) {playerAngle -= 0.05; }
-    if (keys["ArrowRight"]) {playerAngle += 0.05; }
-    if (keys["ArrowUp"]) {
-        playerX += Math.cos(playerAngle) * 5;
-        playerY += Math.sin(playerAngle) * 5;
+    if (keys["ArrowLeft"] || keys["a"]) {playerAngle -= 0.05; }
+    if (keys["ArrowRight"] || keys["d"]) {playerAngle += 0.05; }
+    if (keys["ArrowUp"] || keys["w"]) {
+        let newX = playerX + Math.cos(playerAngle) * 2.5;
+        let newY = playerY + Math.sin(playerAngle) * 2.5;
+        let colX = Math.floor(newX / 50);
+        let rowX = Math.floor(playerY / 50);
+        let cellX = map[rowX][colX];
+        if (cellX === 0) {
+            playerX = newX;
+        }
+        let colY = Math.floor(playerX / 50);
+        let rowY = Math.floor(newY / 50);
+        let cellY = map[rowY][colY];
+        if (cellY === 0) {
+            playerY = newY;
+        }
     }
-    if (keys["ArrowDown"]) {
-        playerX -= Math.cos(playerAngle) * 5;
-        playerY -= Math.sin(playerAngle) * 5;
+    if (keys["ArrowDown"] || keys["s"]) {
+        let newXBackwards = playerX - Math.cos(playerAngle) * 2.5;
+        let newYBackwards = playerY - Math.sin(playerAngle) * 2.5;
+        let colX = Math.floor(newXBackwards / 50);
+        let rowX = Math.floor(playerY / 50);
+        let cellX = map[rowX][colX];
+        if (cellX === 0) {
+            playerX = newXBackwards;
+        }
+        let colY = Math.floor(playerX / 50);  
+        let rowY = Math.floor(newYBackwards / 50);
+        let cellY = map[rowY][colY];
+        if (cellY === 0) {
+            playerY = newYBackwards;
+        }
     }
     draw();
     requestAnimationFrame(update);
 }
 update();
+
