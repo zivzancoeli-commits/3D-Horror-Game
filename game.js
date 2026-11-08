@@ -149,7 +149,7 @@ function draw() {
     }
 }
 function update() {
-        if (keys["Alt"]) {
+        if (keys["Control"]) {
             if (sprint > 0) {
                 speed++;
                 sprint -= 1;
@@ -280,6 +280,7 @@ function update() {
         enemyY = 475;
         playerX = 75;
         playerY = 75;
+        sprint = 100;
     }
     draw();
     requestAnimationFrame(update);
