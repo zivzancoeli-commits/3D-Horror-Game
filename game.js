@@ -2,12 +2,17 @@ let playerX = 75;
 let playerY = 75;
 let enemyX = 475;
 let enemyY = 475;
+let lastSeenX = 75;
+let lastSeenY = 75;
 let enemySpeed = 0.5;
 let playerAngle = 0;
 let showMap = false;
 let lookOffset = 0;
 let speed = 0.4;
 let sprint = 100
+let sneak = false;
+let hidden = false;
+let checkTimer = 0;
 let keys = {};
 addEventListener("keydown", function (e) { keys[e.key] = true; });
 addEventListener("keyup", function (e) { keys[e.key] = false; });
@@ -147,15 +152,31 @@ function draw() {
         ctx.fillStyle = "rgb(" + 120 * bright + ", 0, 0)";
         ctx.fillRect(screenX - enemyHeight / 4, enemyTop, enemyHeight / 2, enemyHeight);
     }
+    let fear = 1 - enemyDistance / 250;
+    if (fear < 0) { fear = 0; }
+    ctx.fillStyle = "rgba(0, 0, 0, " + fear * 0.6 + ")";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(150, 0, 0, " + fear * 0.25 + ")";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 function update() {
+        if (keys["Shift"]) {
+            sneak = true;
+        } else {
+            sneak = false;
+        }
         if (keys["Control"]) {
-            if (sprint > 0) {
+            if (sprint > 0 && sneak === false) {
                 speed++;
                 sprint -= 1;
             }
-        } else if (sprint < 100) {
+        } else if (sprint < 100 && sneak === false) {
             sprint += 0.5;
+        } else if (sprint < 100 && sneak === true) {
+            sprint++;
+        }
+        if (sneak === true) {
+            speed = speed / 2;
         }
         if (keys["ArrowLeft"] || keys["a"]) {
             let newXLeft = playerX - Math.cos(playerAngle + 1.57) * speed;
@@ -220,6 +241,32 @@ function update() {
         if (cellY === 0) {
             playerY = newYBackwards;
         }
+    } 
+    let sdx = playerX - enemyX;
+    let sdy = playerY - enemyY;
+    let sdist = Math.sqrt(sdx * sdx + sdy * sdy);
+    checkTimer++;
+    if (checkTimer >= 300) {
+        checkTimer = 0;
+        hidden = sneak;
+    }
+    if (hidden === false || sdist < 50) {
+        lastSeenX = playerX;
+        lastSeenY = playerY;
+    }
+    let IsCol = Math.floor(lastSeenX / 50);
+    let IsRow = Math.floor(lastSeenY / 50);
+    let enCol = Math.floor(enemyX / 50);
+    let enRow = Math.floor(enemyY / 50);
+    if (IsCol === enCol && IsRow === enRow && hidden === true && sdist >= 50) {
+        let rc = 0;
+        let rr = 0;
+        while (map[rr][rc] !== 0) {
+            rc = Math.floor(Math.random() * map[0].length);
+            rr = Math.floor(Math.random() * map.length);
+        }
+        lastSeenX = rc * 50 + 25;
+        lastSeenY = rr * 50 + 25;
     }
     let distGrid = [];
     for (let y = 0; y < map.length; y++) {
@@ -228,8 +275,8 @@ function update() {
             distGrid[y][x] = 999;
         }
     }
-    let pCol = Math.floor(playerX / 50);
-    let pRow = Math.floor(playerY / 50);
+    let pCol = Math.floor(lastSeenX / 50);
+    let pRow = Math.floor(lastSeenY / 50);
     distGrid[pRow][pCol] = 0;
     let queue = [[pRow, pCol]];
     while (queue.length > 0) {
@@ -248,8 +295,8 @@ function update() {
     }
     let eCol = Math.floor(enemyX / 50);
     let eRow = Math.floor(enemyY / 50);
-    let targetX = playerX;
-    let targetY = playerY;
+    let targetX = lastSeenX;
+    let targetY = lastSeenY;
     let best = distGrid[eRow][eCol];
     let eNeighbors = [[eRow - 1, eCol], [eRow + 1, eCol], [eRow, eCol - 1], [eRow, eCol + 1]];
     for (let n = 0; n < 4; n++) {
@@ -276,6 +323,10 @@ function update() {
     let eRowY = Math.floor(newEY / 50);
     if (map[eRowY][eColY] === 0) { enemyY = newEY; }
     if (edist < 15) {
+        hidden = false;
+        checkTimer = 0;
+        lastSeenX = 75;
+        lastSeenY = 75;
         enemyX = 475;
         enemyY = 475;
         playerX = 75;
