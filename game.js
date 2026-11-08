@@ -1,9 +1,12 @@
 let playerX = 75;
 let playerY = 75;
+let enemyX = 475;
+let enemyY = 475;
+let enemySpeed = 0.5;
 let playerAngle = 0;
 let showMap = false;
 let lookOffset = 0;
-let speed = 1.5;
+let speed = 0.4;
 let sprint = 100
 let keys = {};
 addEventListener("keydown", function (e) { keys[e.key] = true; });
@@ -13,15 +16,15 @@ addEventListener("mousemove", function (e) { lookOffset -= e.movementY * 1; });
 
 let map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-    [1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1],
-    [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1],
-    [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1],
+    [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 let canvas = document.getElementById("game");
@@ -82,8 +85,10 @@ function draw() {
         distance = distance * Math.cos(rayAngle - playerAngle);
         wallDistances[i] = distance;
         let wallHeight = 5000 / distance;
+        let shade = 80 - distance / 2;
+        if (shade < 15) { shade = 15; }
         let stripWidth = 8;
-        ctx.fillStyle = "rgb(80, 80, 80)";
+        ctx.fillStyle = "rgb(" + shade + ", " + shade + ", " + shade + ")";
         ctx.fillRect(i * stripWidth, canvas.height / 2 + lookOffset - wallHeight / 2, stripWidth, wallHeight);
         //raycasting
         ctx.strokeStyle = "lime";
@@ -102,6 +107,8 @@ function draw() {
                 let dx = lightX - playerX;
                 let dy = lightY - playerY;
                 let lightDistance = Math.sqrt(dx * dx + dy * dy);
+                let bright = 1 - lightDistance / 300;
+                if (bright < 0.1) { bright = 0.1; }
                 let lightSize = 1000 / lightDistance;
                 let lightY2 = horizon - 2500 / lightDistance;
                 let lightAngle = Math.atan2(dy, dx) - playerAngle;
@@ -114,17 +121,37 @@ function draw() {
                 let screenX = (lightAngle + 0.5) / 1.0 * canvas.width;
                 let strip = Math.floor(screenX / 8);
                 if (strip >= 0 && strip < 80 && lightDistance < wallDistances[strip]) {
-                    ctx.fillStyle = "rgb(255, 250, 200)";
+                    ctx.fillStyle = "rgb(" + 255 * bright + ", " + 250 * bright + ", " + 200 * bright + ")";
                     ctx.fillRect(screenX - lightSize / 2, lightY2 - lightSize / 2, lightSize, lightSize / 3)
                 }
             }
         }
     }
+    let dx = enemyX - playerX;
+    let dy = enemyY - playerY;
+    let enemyDistance = Math.sqrt(dx * dx + dy * dy);
+    let bright = 1 - enemyDistance / 300;
+    if (bright < 0.1) { bright = 0.1; }
+    let enemyHeight = 5000 / enemyDistance;
+    let enemyTop = horizon - enemyHeight / 2;
+    let enemyAngle = Math.atan2(dy, dx) - playerAngle;
+    while (enemyAngle > Math.PI) {
+        enemyAngle -= Math.PI * 2;
+    }
+    while (enemyAngle < -Math.PI) {
+        enemyAngle += Math.PI * 2;
+    }
+    let screenX = (enemyAngle + 0.5) / 1.0 * canvas.width;
+    let strip = Math.floor(screenX / 8);
+    if (strip >= 0 && strip < 80 && enemyDistance < wallDistances[strip]) {
+        ctx.fillStyle = "rgb(" + 120 * bright + ", 0, 0)";
+        ctx.fillRect(screenX - enemyHeight / 4, enemyTop, enemyHeight / 2, enemyHeight);
+    }
 }
 function update() {
         if (keys["Alt"]) {
             if (sprint > 0) {
-                speed = 2.5;
+                speed++;
                 sprint -= 1;
             }
         } else if (sprint < 100) {
@@ -194,9 +221,69 @@ function update() {
             playerY = newYBackwards;
         }
     }
+    let distGrid = [];
+    for (let y = 0; y < map.length; y++) {
+        distGrid[y] = [];
+        for (let x = 0; x < map[y].length; x++) {
+            distGrid[y][x] = 999;
+        }
+    }
+    let pCol = Math.floor(playerX / 50);
+    let pRow = Math.floor(playerY / 50);
+    distGrid[pRow][pCol] = 0;
+    let queue = [[pRow, pCol]];
+    while (queue.length > 0) {
+        let cur = queue.shift();
+        let r = cur[0];
+        let c = cur[1];
+        let neighbors = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+        for (let n = 0; n < 4; n++) {
+            let nr = neighbors[n][0];
+            let nc = neighbors[n][1];
+            if (map[nr][nc] === 0 && distGrid[nr][nc] === 999) {
+                distGrid[nr][nc] = distGrid[r][c] + 1;
+                queue.push([nr, nc]);
+            }
+        }
+    }
+    let eCol = Math.floor(enemyX / 50);
+    let eRow = Math.floor(enemyY / 50);
+    let targetX = playerX;
+    let targetY = playerY;
+    let best = distGrid[eRow][eCol];
+    let eNeighbors = [[eRow - 1, eCol], [eRow + 1, eCol], [eRow, eCol - 1], [eRow, eCol + 1]];
+    for (let n = 0; n < 4; n++) {
+        let nr = eNeighbors[n][0];
+        let nc = eNeighbors[n][1];
+        if (distGrid[nr][nc] < best) {
+            best = distGrid[nr][nc];
+            targetX = nc * 50 + 25;
+            targetY = nr * 50 + 25;
+        }
+    }
+    let tdx = targetX - enemyX;
+    let tdy = targetY - enemyY;
+    let tdist = Math.sqrt(tdx * tdx + tdy * tdy) + 0.0000001;
+    let edx = playerX - enemyX;
+    let edy = playerY - enemyY;
+    let edist = Math.sqrt(edx * edx + edy * edy) + 0.0000001;
+    let newEX = enemyX + tdx / tdist * enemySpeed;
+    let newEY = enemyY + tdy / tdist * enemySpeed;
+    let eColX = Math.floor(newEX / 50);
+    let eRowX = Math.floor(enemyY / 50);
+    if (map[eRowX][eColX] === 0) { enemyX = newEX; }
+    let eColY = Math.floor(enemyX / 50);
+    let eRowY = Math.floor(newEY / 50);
+    if (map[eRowY][eColY] === 0) { enemyY = newEY; }
+    if (edist < 15) {
+        enemyX = 475;
+        enemyY = 475;
+        playerX = 75;
+        playerY = 75;
+    }
     draw();
     requestAnimationFrame(update);
-    speed = 1.5;
+    speed = 0.4;
 }
 update();
 
