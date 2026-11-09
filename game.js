@@ -13,6 +13,12 @@ let sprint = 100
 let sneak = false;
 let hidden = false;
 let checkTimer = 0;
+let keyX = 0;
+let keyY = 0;
+let hasKey = false;
+let doorX = 475;
+let doorY = 475;
+let doorSide = -1;
 let keys = {};
 addEventListener("keydown", function (e) { keys[e.key] = true; });
 addEventListener("keyup", function (e) { keys[e.key] = false; });
@@ -32,6 +38,32 @@ let map = [
     [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
+let sideSteps = [[0, -1], [-1, 0], [0, 1], [1, 0]];
+let firstSide = Math.floor(Math.random() * 4);
+let doorCol = Math.floor(doorX / 50);
+let doorRow = Math.floor(doorY / 50);
+
+for (let attempt = 0; attempt < 4; attempt++) {
+    let side = (firstSide + attempt) % 4;
+    let wallCol = doorCol + sideSteps[side][0];
+    let wallRow = doorRow + sideSteps[side][1];
+    if (map[wallRow][wallCol] === 1) {
+        doorSide = side;
+        break;
+    }
+}
+function placeKey() {
+    let kc = 0;
+    let kr = 0;
+    while (map[kr][kc] !== 0) {
+        kc = Math.floor(Math.random() * map[0].length);
+        kr = Math.floor(Math.random() * map.length);
+    }
+    keyX = kc * 50 + 25;
+    keyY = kr * 50 + 25;
+    hasKey = false;
+}
+placeKey();
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 canvas.addEventListener("click", function () {
@@ -94,6 +126,23 @@ function draw() {
         if (shade < 15) { shade = 15; }
         let stripWidth = 8;
         ctx.fillStyle = "rgb(" + shade + ", " + shade + ", " + shade + ")";
+        if (doorSide !== -1) {
+            let hitCol = Math.floor(rayX / 50);
+            let hitRow = Math.floor(rayY / 50);
+            let beforeX = rayX - Math.cos(rayAngle);
+            let beforeY = rayY - Math.sin(rayAngle);
+            let beforeCol = Math.floor(beforeX / 50);
+            let beforeRow = Math.floor(beforeY / 50);
+            let wallCol = doorCol + sideSteps[doorSide][0];
+            let wallRow = doorRow + sideSteps[doorSide][1];
+            let along = beforeX - doorX;
+            if (doorSide === 1 || doorSide === 3) {
+                along = beforeY - doorY;
+            }
+            if (hitCol === wallCol && hitRow === wallRow && beforeCol === doorCol && beforeRow === doorRow && Math.abs(along) < 5) {
+                ctx.fillStyle = "rgb(100, 60, 20)";
+            }
+        }
         ctx.fillRect(i * stripWidth, canvas.height / 2 + lookOffset - wallHeight / 2, stripWidth, wallHeight);
         //raycasting
         ctx.strokeStyle = "lime";
@@ -151,6 +200,25 @@ function draw() {
     if (strip >= 0 && strip < 80 && enemyDistance < wallDistances[strip]) {
         ctx.fillStyle = "rgb(" + 120 * bright + ", 0, 0)";
         ctx.fillRect(screenX - enemyHeight / 4, enemyTop, enemyHeight / 2, enemyHeight);
+    }
+    let items = [];
+    if (hasKey === false) {
+        items.push([keyX, keyY, 255, 220, 0]);
+    }
+    for (let k = 0; k < items.length; k++) {
+        let ix = items[k][0] - playerX;
+        let iy = items[k][1] - playerY;
+        let iDist = Math.sqrt(ix * ix + iy * iy) + 0.0000001;
+        let iAngle = Math.atan2(iy, ix) - playerAngle;
+        while (iAngle > Math.PI) { iAngle -= Math.PI * 2; }
+        while (iAngle < -Math.PI) { iAngle += Math.PI * 2; }
+        let iScreenX = (iAngle + 0.5) / 1.0 * canvas.width;
+        let iStrip = Math.floor(iScreenX / 8);
+        let iSize = 5000 / iDist;
+        if (iStrip >= 0 && iStrip < 80 && iDist < wallDistances[iStrip]) {
+            ctx.fillStyle = "rgb(" + items[k][2] + ", " + items[k][3] + ", " + items[k][4] + ")";
+            ctx.fillRect(iScreenX - iSize / 16, horizon + iSize / 4, iSize / 8, iSize / 8);
+        }
     }
     let fear = 1 - enemyDistance / 250;
     if (fear < 0) { fear = 0; }
@@ -322,6 +390,26 @@ function update() {
     let eColY = Math.floor(enemyX / 50);
     let eRowY = Math.floor(newEY / 50);
     if (map[eRowY][eColY] === 0) { enemyY = newEY; }
+    let kdx = playerX - keyX;
+    let kdy = playerY - keyY;
+    if (hasKey === false && Math.sqrt(kdx * kdx + kdy * kdy) < 20) {
+        hasKey = true;
+    }
+    let ddx = playerX - doorX;
+    let ddy = playerY - doorY;
+    if (hasKey === true && Math.sqrt(ddx * ddx + ddy * ddy) < 20) {
+        alert("You escaped!");
+        playerX = 75;
+        playerY = 75;
+        enemyX = 475;
+        enemyY = 475;
+        hidden = false;
+        checkTimer = 0;
+        lastSeenX = 75;
+        lastSeenY = 75;
+        sprint = 100;
+        placeKey();
+    }
     if (edist < 15) {
         hidden = false;
         checkTimer = 0;
@@ -332,6 +420,7 @@ function update() {
         playerX = 75;
         playerY = 75;
         sprint = 100;
+        placeKey();
     }
     draw();
     requestAnimationFrame(update);
