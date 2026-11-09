@@ -20,24 +20,71 @@ let doorX = 475;
 let doorY = 475;
 let doorSide = -1;
 let keys = {};
-addEventListener("keydown", function (e) { keys[e.key] = true; });
-addEventListener("keyup", function (e) { keys[e.key] = false; });
+addEventListener("keydown", function (e) {
+    let k = e.key;
+    if (k.length === 1) { k = k.toLowerCase(); }
+    keys[k] = true;
+});
+addEventListener("keyup", function (e) {
+    let k = e.key;
+    if (k.length === 1) { k = k.toLowerCase(); }
+    keys[k] = false;
+});
 addEventListener("mousemove", function (e) { playerAngle += e.movementX * 0.002; });
 addEventListener("mousemove", function (e) { lookOffset -= e.movementY * 1; });
+function generateMap() {
+    let grid = [];
+    for (let row = 0; row < 11; row++) {
+        grid[row] = [];
+        for (let col = 0; col < 11; col++) {
+            grid[row][col] = 1;
+        }
+    }
+    grid[1][1] = 0;
+    let stack = [[1, 1]];
+    let dirs = [[-2, 0], [2, 0], [0, -2], [0, 2]];
 
-let map = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1],
-    [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-];
+    while (stack.length > 0) {
+        let cur = stack[stack.length - 1];
+        let cr = cur[0];
+        let cc = cur[1];
+        let options = [];
+
+        for (let d = 0; d < dirs.length; d++) {
+            let nr = cr + dirs[d][0];
+            let nc = cc + dirs[d][1];
+            if (nr >= 1 && nr <= 9 && nc >= 1 && nc <= 9 && grid[nr][nc] === 1) {
+                options.push([nr, nc]);
+            }
+        }
+        if (options.length === 0) {
+            stack.pop();
+        } else {
+            let pick = options[Math.floor(Math.random() * options.length)];
+            let nr = pick[0];
+            let nc = pick[1];
+            grid[(cr + nr) / 2][(cc + nc) / 2] = 0;
+            grid[nr][nc] = 0;
+            stack.push([nr, nc]);
+        }
+    }
+    let connections = [];
+    for (let r = 1; r <= 9; r++) {
+        for (let c = 1; c <= 9; c++) {
+            if ((r + c) % 2 === 1 && grid[r][c] === 1) {
+                connections.push([r, c]);
+            }
+        }
+    }
+    let openings = Math.min(3, connections.length);
+    for (let i = 0; i < openings; i++) {
+        let index = Math.floor(Math.random() * connections.length);
+        let cell = connections.splice(index, 1)[0];
+        grid[cell[0]][cell[1]] = 0;
+    }
+    return grid;
+}
+let map = generateMap();
 let sideSteps = [[0, -1], [-1, 0], [0, 1], [1, 0]];
 let firstSide = Math.floor(Math.random() * 4);
 let doorCol = Math.floor(doorX / 50);
@@ -55,7 +102,7 @@ for (let attempt = 0; attempt < 4; attempt++) {
 function placeKey() {
     let kc = 0;
     let kr = 0;
-    while (map[kr][kc] !== 0) {
+    while (map[kr][kc] !== 0 || Math.abs(kr - 1) + Math.abs(kc - 1) < 4 || Math.abs(kr - 9) + Math.abs(kc - 9) < 4) {
         kc = Math.floor(Math.random() * map[0].length);
         kr = Math.floor(Math.random() * map.length);
     }
@@ -70,10 +117,10 @@ canvas.addEventListener("click", function () {
     canvas.requestPointerLock();
 });
 function draw() {
-    if (lookOffset > 200) {
-        lookOffset = 200;
-    } else if (lookOffset < -200) {
-        lookOffset = -200;
+    if (lookOffset > 500) {
+        lookOffset = 500;
+    } else if (lookOffset < -500) {
+        lookOffset = -500;
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgb(26, 26, 26)";
@@ -427,4 +474,3 @@ function update() {
     speed = 0.4;
 }
 update();
-
