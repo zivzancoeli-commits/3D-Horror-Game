@@ -16,6 +16,7 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 - Crounching (shift)
 - An enemy
 - Lights
+- Jump scares
 
 ## What I want to add
 - Animations
