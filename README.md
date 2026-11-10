@@ -5,4 +5,26 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 
 ## How to play it
 1. Open https://zivzancoeli-commits.github.io/3D-Horror-Game/
-2. Use WASD or arrows to move
+2. Use WASD or arrows to move, shift to sneak, and control to sprint
+3. Find the key then go to the door which is the opposite side of the map
+4. You won!
+
+## What it has
+- Map generation
+- WASD/arrows movement
+- Sprinting (control)
+- Crounching (shift)
+- An enemy
+- Lights
+
+## What I want to add
+- Animations
+- Textures
+- Sounds
+- A main menu
+- Configurable map generation
+- Settings
+- World/game settings (e.g enemy speed)
+
+## Inspiration
+This takes inspiration from Doom and a youtube video where I saw someone make a 3D game in Scratch using a similar technique, and the backrooms also gave some inspiration.
