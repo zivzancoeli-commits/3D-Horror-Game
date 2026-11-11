@@ -25,6 +25,3 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 - Configurable map generation
 - Settings
 - World/game settings (e.g enemy speed)
-
-## Inspiration
-This takes inspiration from Doom and a youtube video where I saw someone make a 3D game in Scratch using a similar technique, and the backrooms also gave some inspiration.
