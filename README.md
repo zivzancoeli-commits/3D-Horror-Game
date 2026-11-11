@@ -10,18 +10,18 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 4. You won!
 
 ## What it has
-- Map generation
-- WASD/arrows movement
+- Map Generation
+- WASD/Arrows Movement
 - Sprinting (control)
 - Crounching (shift)
 - An enemy
 - Lights
-- Jump scares
+- Jump Scares
+- Player Settings
+- Game Settings
 
 ## What I want to add
 - Textures
 - Sounds
 - A main menu
 - Configurable map generation
-- Settings
-- World/game settings (e.g enemy speed)
