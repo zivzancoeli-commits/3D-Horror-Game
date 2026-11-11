@@ -15,7 +15,7 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 - Sprinting (control)
 - Crounching (shift)
 - An enemy
-- Lights
+- Flickering Lights
 - Jump Scares
 - Player Settings
 - Game Settings
