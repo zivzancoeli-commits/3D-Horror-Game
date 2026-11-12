@@ -19,9 +19,9 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 - Jump Scares
 - Player Settings
 - Game Settings
-
-## What I want to add
-- Textures
-- Sounds
 - A main menu
 - Configurable map generation
+
+## What I want to add
+- Sounds
+- Textures
