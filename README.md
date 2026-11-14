@@ -25,3 +25,6 @@ It's ran as 2D but it creates the illusion of 3D using a trick called raycasting
 ## What I want to add
 - Sounds
 - Textures
+- Animations
+- Better walls
+- More player interactions (e.g puzzles, items, etc)
